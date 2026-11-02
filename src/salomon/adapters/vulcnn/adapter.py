@@ -1,13 +1,28 @@
+from pathlib import Path
+
+from .backend import VulCNNBackend
+
+
 class VulCNNAdapter:
-    def __init__(self):
-        pass
+    def __init__(self, **settings):
+        self.backend = VulCNNBackend(**settings)
 
-    def generate_pdg(self, file_path: str) -> None:
-        pass
+    def create_pdg(self, source_code: str | bytes, filename: str = "input.c") -> list[Path]:
+        run = self.backend.prepare_source(source_code, filename)
+        manifest = self.backend.create_pdg(run)
+        return [self.backend.host_path(function["pdg"]) for function in manifest["functions"]]
 
-    def predict(self, pdgs: list[PDG]) -> bool:
-        pass
-
-    def analyze_code(self, file_path: str) -> None:
-        pdg = self.generate_pdg(file_path)
-        self.predict(pdg)
+    def analyze_code(self, source_code: str | bytes, filename: str = "input.c") -> Path:
+        self.backend.check_models()
+        run = self.backend.prepare_source(source_code, filename)
+        self.backend.create_pdg(run)
+        self.backend.run_vulcnn_command(
+            "embed", run=self.backend.container_path(run), model=f"/models/{self.backend.embedding_model}"
+        )
+        result = self.backend.run_vulcnn_command(
+            "classify",
+            run=self.backend.container_path(run),
+            checkpoint=f"/models/{self.backend.checkpoint}",
+            max_length=self.backend.max_length,
+        )
+        return self.backend.host_path(result["report"])
