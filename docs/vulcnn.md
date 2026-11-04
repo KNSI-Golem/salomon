@@ -158,7 +158,10 @@ Compose mounts the local Docker socket into the app for those calls. VulCNN keep
 running between commands; there is no HTTP server or Docker daemon inside it.
 
 ```bash
+mkdir -p data/raw
 cp demos/pdg_representation/examples/example1.c data/raw/example.c
+docker build -t salomon-vulcnn:local -f docker/vulcnn/Dockerfile .
+docker compose build app
 docker compose run --rm app pdg /data/raw/example.c
 docker compose run --rm app analyze /data/raw/example.c
 docker compose down

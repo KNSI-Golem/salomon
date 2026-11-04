@@ -2,6 +2,7 @@ import io.shiftleft.semanticcpg.language._
 
 @main def exec(cpgFile: String, outputPath: String, exportPdg: Boolean = false) = {
     importCpg(cpgFile)
+    java.nio.file.Files.createDirectories(java.nio.file.Paths.get(outputPath))
     val methods = cpg.method.filterNot(_.isExternal)
         .filter(m => !m.name.startsWith("<") && m.lineNumber.isDefined && m.block.nonEmpty)
         .l.sortBy(m => (m.lineNumber.map(_.toInt).getOrElse(0), m.columnNumber.map(_.toInt).getOrElse(0), m.id))

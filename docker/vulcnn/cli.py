@@ -9,14 +9,8 @@ import pickle
 import re
 import subprocess
 import sys
-import ImageGeneration
-import numpy as np
-import sent2vec
 from pathlib import Path
 from uuid import uuid4
-import torch
-from model import TextCNN
-from clean_gadget import clean_gadget
 
 """ 
 Define the stages of the VulCNN pipeline:
@@ -147,6 +141,8 @@ def replace_comments_with_whitespaces(original):
     return re.sub(r"(?<!:)//.*|/\*(\s|.)*?\*/", lambda match: re.sub(r"[^\r\n]", " ", match.group()), original)
 
 def normalize_source(run: Path) -> dict:
+    from clean_gadget import clean_gadget
+
     
     # Read the filename from the source.json file.
     filename = read_json(run / "source.json")["filename"]
@@ -198,6 +194,10 @@ def canonicalize_pdg(path: Path) -> None:
 
 
 def embed_pdgs(run: Path, model_path: Path) -> dict:
+    import ImageGeneration
+    import numpy as np
+    import sent2vec
+
     manifest = read_json(run / "result.json")
 
     model = sent2vec.Sent2vecModel()
@@ -220,6 +220,10 @@ def embed_pdgs(run: Path, model_path: Path) -> dict:
 
 
 def classify_functions(run: Path, nn_model: Path, max_length: int) -> dict:
+    import numpy as np
+    import torch
+    from model import TextCNN
+
     # Read the manifest file.
     manifest = read_json(run / "result.json")
 
@@ -306,7 +310,7 @@ def main() -> int:
         if stage == "embed":
             command.add_argument("--model", type=Path, required=True)
         if stage == "classify":
-            command.add_argument("--nn_model", type=Path, required=True)
+            command.add_argument("--nn-model", "--nn_model", dest="nn_model", type=Path, required=True)
             command.add_argument("--max-length", type=int, default=100)
     
     args = parser.parse_args()

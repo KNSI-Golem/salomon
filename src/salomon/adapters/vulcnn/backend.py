@@ -79,10 +79,13 @@ class VulCNNBackend(AbstractBackend):
             raise ValueError(f"{path} escaped the workspace.")
         return result
 
-    def create_pdg(self, run: Path) -> dict:
+    def create_model_representation(self, run: Path) -> dict:
         for stage in ("inspect", "normalize", "parse", "export"):
             result = self.run_vulcnn_command(stage, run=self.container_path(run))
         return result
+
+    def create_pdg(self, run: Path) -> dict:
+        return self.create_model_representation(run)
 
     def run_vulcnn_command(self, command: str, **parameters) -> dict:
         PYTHON = sys.executable
