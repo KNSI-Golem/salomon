@@ -69,7 +69,7 @@ def prepare_docker_wrapper(args, job_name, workspace, models) -> list:
     ]
     return command
 
-def prepare_docker_timout_run(command, args):
+def prepare_docker_timeout_run(command, args):
     command += [
         "--signal=TERM",
         "--kill-after=5",
@@ -102,7 +102,7 @@ def run_docker_command(args) -> dict:
         command = prepare_docker_wrapper(args, job_name, workspace, models)
     
     # Add the timeout command to the command list.
-    command = prepare_docker_timout_run(command, args)
+    command = prepare_docker_timeout_run(command, args)
     
     # Print the command to the console.
     print(f"Running command: {' '.join(command)}", file=sys.stderr)
@@ -219,13 +219,13 @@ def embed_pdgs(run: Path, model_path: Path) -> dict:
     return manifest
 
 
-def classify_functions(run: Path, checkpoint: Path, max_length: int) -> dict:
+def classify_functions(run: Path, nn_model: Path, max_length: int) -> dict:
     # Read the manifest file.
     manifest = read_json(run / "result.json")
 
     # Create the model.
     model = TextCNN(hidden_size=manifest["embedding_dim"])
-    weights = torch.load(checkpoint, map_location="cpu", weights_only=True)
+    weights = torch.load(nn_model, map_location="cpu", weights_only=True)
     model.load_state_dict(weights.get("state_dict", weights), strict=True)
     model.eval()
 
@@ -306,7 +306,7 @@ def main() -> int:
         if stage == "embed":
             command.add_argument("--model", type=Path, required=True)
         if stage == "classify":
-            command.add_argument("--checkpoint", type=Path, required=True)
+            command.add_argument("--nn_model", type=Path, required=True)
             command.add_argument("--max-length", type=int, default=100)
     
     args = parser.parse_args()
@@ -322,7 +322,7 @@ def main() -> int:
                 if args.command == "embed":
                     result = embed_pdgs(args.run, args.model)
                 elif args.command == "classify":
-                    result = classify_functions(args.run, args.checkpoint, args.max_length)
+                    result = classify_functions(args.run, args.nn_model, args.max_length)
                 else:
                     result = {
                         "inspect": inspect_source,

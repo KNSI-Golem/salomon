@@ -1,18 +1,18 @@
 from pathlib import Path
-
+from salomon.adapters.AbstractAdapter import AbstractAdapter
 from .backend import VulCNNBackend
 
 
-class VulCNNAdapter:
+class VulCNNAdapter(AbstractAdapter):
     def __init__(self, **settings):
         self.backend = VulCNNBackend(**settings)
 
-    def create_pdg(self, source_code: str | bytes, filename: str = "input.c") -> list[Path]:
+    def create_representation(self, source_code: str | bytes, filename: str) -> list[Path]:
         run = self.backend.prepare_source(source_code, filename)
         manifest = self.backend.create_pdg(run)
         return [self.backend.host_path(function["pdg"]) for function in manifest["functions"]]
 
-    def analyze_code(self, source_code: str | bytes, filename: str = "input.c") -> Path:
+    def analyze_code(self, source_code: str | bytes, filename) -> Path:
         self.backend.check_models()
         run = self.backend.prepare_source(source_code, filename)
         self.backend.create_pdg(run)

@@ -6,8 +6,9 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from uuid import uuid4
 
+
 # Replace "Model" everywhere with appropriate model names and variables
-class Backend(ABC):
+class AbstractBackend(ABC):
     def __init__(
         self,
         image: str,
@@ -20,13 +21,13 @@ class Backend(ABC):
         timeout: int = 600,
     ):
         # TODO
-        self.workspace = Path(workspace or os.environ.get("SALOMON_WORKSPACE", "outputs/salomon")).resolve()
-        self.models = Path(models or os.environ.get("SALOMON_MODELS", "models")).resolve()
+        self.workspace = Path(workspace or os.environ.get("EXAMPLE_WORKSPACE", "outputs/salomon")).resolve()
+        self.models = Path(models or os.environ.get("EXAMPLE_MODELS", "models")).resolve()
 
         self.image = image
 
         # TODO 
-        self.container = container or os.environ.get("MODEL_CONTAINER")
+        self.container = container or os.environ.get("EXAMPLE_CONTAINER")
         self.nn_model = self._model_path(nn_model)
 
         if max_length < 10 or timeout < 0:
@@ -36,11 +37,11 @@ class Backend(ABC):
         self.timeout = timeout
 
         # TODO
-        self.cli = Path(__file__).resolve().parents[2] / "model_cli.py"
+        self.cli = Path(__file__).resolve().parents[2] / "cli.py"
 
         # TODO
         if not self.cli.is_file():
-            self.cli = Path(__file__).resolve().parents[4] / "docker/model/cli.py"
+            self.cli = Path(__file__).resolve().parents[4] / "docker/example/cli.py"
     
     @staticmethod
     def _model_path(value: str) -> str:
@@ -106,7 +107,7 @@ class Backend(ABC):
         ]
 
         if self.container:
-            arguments.extend(["--container", self.conatiner])
+            arguments.extend(["--container", self.container])
         
         arguments.append(command)
 

@@ -4,9 +4,10 @@ import subprocess
 import sys
 from pathlib import Path
 from uuid import uuid4
+from salomon.adapters.AbstractBackend import AbstractBackend
 
 
-class VulCNNBackend:
+class VulCNNBackend(AbstractBackend):
     def __init__(
         self,
         workspace: str | Path | None = None,
@@ -90,7 +91,7 @@ class VulCNNBackend:
         arguments = [
             PYTHON,
             CLI_FILE,
-            "docker",
+            "docker",            
             "--workspace",
             str(self.workspace),
             "--models",
@@ -98,6 +99,7 @@ class VulCNNBackend:
             "--image",
             self.image,
             "--timeout",
+            
             str(self.timeout),
         ]
 
