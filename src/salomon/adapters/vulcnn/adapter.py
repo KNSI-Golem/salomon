@@ -22,7 +22,7 @@ class VulCNNAdapter:
         result = self.backend.run_vulcnn_command(
             "classify",
             run=self.backend.container_path(run),
-            checkpoint=f"/models/{self.backend.checkpoint}",
+            nn_model=f"/models/{self.backend.nn_model}",
             max_length=self.backend.max_length,
         )
         return self.backend.host_path(result["report"])

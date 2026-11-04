@@ -14,7 +14,7 @@ class VulCNNBackend:
         image: str = "salomon-vulcnn:local",
         container: str | None = None,
         embedding_model: str = "vulcnn/sent2vec.bin",
-        checkpoint: str = "vulcnn/cnn.pt",
+        nn_model: str = "vulcnn/cnn.pt",
         max_length: int = 100,
         timeout: int = 600,
     ):
@@ -24,7 +24,7 @@ class VulCNNBackend:
         self.image = image
         self.container = container or os.environ.get("VULCNN_CONTAINER")
         self.embedding_model = self._model_path(embedding_model)
-        self.checkpoint = self._model_path(checkpoint)
+        self.nn_model = self._model_path(nn_model)
 
         if max_length < 10 or timeout <= 0:
             raise ValueError("max_length must be at least 10 and timeout must be positive.")
@@ -46,7 +46,7 @@ class VulCNNBackend:
         return path.as_posix()
 
     def check_models(self) -> None:
-        for model in (self.embedding_model, self.checkpoint):
+        for model in (self.embedding_model, self.nn_model):
             if not (self.models / model).is_file():
                 raise FileNotFoundError(f"Required trained model is missing: {self.models / model}")
 
@@ -74,7 +74,8 @@ class VulCNNBackend:
     def host_path(self, path: str) -> Path:
         relative = Path(path).relative_to("/workspace")
         result = (self.workspace / relative).resolve()
-        result.relative_to(self.workspace)
+        if not result.is_relative_to(self.workspace):
+            raise ValueError(f"{path} escaped the workspace.")
         return result
 
     def create_pdg(self, run: Path) -> dict:
